@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.RightWayOut" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="colorPrimary">#1565C0</item>
-        <item name="colorPrimaryDark">#0D47A1</item>
-        <item name="colorAccent">#FF6F00</item>
-        <item name="android:windowBackground">@color/white</item>
+    <style name="Theme.RightWayOut" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/maroon_dark</item>
+        <item name="android:navigationBarColor">@color/maroon_dark</item>
     </style>
 </resources>
