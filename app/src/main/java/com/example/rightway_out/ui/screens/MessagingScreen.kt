@@ -54,7 +54,9 @@ fun MessagingScreen(
     val currentUid = FirebaseAuth.getInstance().currentUser?.uid ?: ""
     val isAdmin = currentUid != studentId
     val db = FirebaseDatabase.getInstance()
-    val chatId = listOf(currentUid, studentId).sorted().joinToString("_")
+    // One conversation thread per student — keyed by studentId alone so the
+    // student and any admin viewing that student's chat land in the same room.
+    val chatId = studentId
     val chatRef = db.getReference("chats/$chatId")
 
     var messages by remember { mutableStateOf<List<ChatMessage>>(emptyList()) }

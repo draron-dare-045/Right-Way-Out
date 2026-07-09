@@ -58,7 +58,7 @@ fun AdminMessagesScreen(
 
             studentMap.forEach { (sid, name) ->
                 if (sid == adminUid) { processed++; if (processed == studentMap.size) { conversations = convList.sortedByDescending { it.timestamp }; isLoading = false }; return@forEach }
-                val chatId  = listOf(adminUid, sid).sorted().joinToString("_")
+                val chatId  = sid
                 val chatRef = db.getReference("chats/$chatId")
                 chatRef.orderByChild("timestamp").limitToLast(1)
                     .addListenerForSingleValueEvent(object : ValueEventListener {

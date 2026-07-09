@@ -22,9 +22,8 @@ object Routes {
     const val LANDING = "landing"
     const val LOGIN = "login"
     const val MAIN = "main"                    // ← Student Bottom Nav Container
-    const val ADMIN = "admin"                   // ← Admin Dashboard
+    const val ADMIN = "admin"                   // ← Admin Dashboard (bottom nav)
     const val ADD_STUDENT = "add_student"
-    const val ADMIN_MESSAGES = "admin_messages"
     const val STUDENT_PROFILE = "student_profile/{studentId}"
     const val MESSAGING = "messaging/{studentId}/{studentName}"
 
@@ -97,27 +96,10 @@ fun RightWayOutNavGraph(
             )
         }
 
-        // ==================== ADMIN: DASHBOARD ====================
+        // ==================== ADMIN: DASHBOARD (with bottom nav) ====================
         composable(Routes.ADMIN) {
-            AdminScreen(
-                onLogout = {
-                    auth.signOut()
-                    navController.navigate(Routes.LOGIN) {
-                        popUpTo(Routes.LANDING) { inclusive = true }
-                    }
-                },
-                onAddStudent = {
-                    navController.navigate(Routes.ADD_STUDENT)
-                },
-                onStudentClick = { student ->
-                    navController.navigate(Routes.studentProfile(student.id))
-                },
-                onMessageStudent = { student ->
-                    navController.navigate(Routes.messaging(student.id, student.name))
-                },
-                onOpenMessages = {
-                    navController.navigate(Routes.ADMIN_MESSAGES)
-                },
+            AdminMainBottomNavScreen(
+                navController = navController,
                 themeViewModel = themeViewModel
             )
         }
@@ -125,15 +107,6 @@ fun RightWayOutNavGraph(
         // Other screens (still accessible via deep links if needed)
         composable(Routes.ADD_STUDENT) {
             AddStudentScreen(onBack = { navController.popBackStack() })
-        }
-
-        composable(Routes.ADMIN_MESSAGES) {
-            AdminMessagesScreen(
-                onBack = { navController.popBackStack() },
-                onOpenChat = { sid, name ->
-                    navController.navigate(Routes.messaging(sid, name))
-                }
-            )
         }
 
         // Admin viewing an individual student's profile

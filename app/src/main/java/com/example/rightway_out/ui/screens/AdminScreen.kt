@@ -38,7 +38,6 @@ fun AdminScreen(
     onAddStudent: () -> Unit,
     onStudentClick: (StudentModel) -> Unit,
     onMessageStudent: (StudentModel) -> Unit,
-    onOpenMessages: () -> Unit,
     themeViewModel: ThemeViewModel,
     viewModel: ClearanceViewModel = hiltViewModel()
 ) {
@@ -59,12 +58,6 @@ fun AdminScreen(
                     }
                 },
                 actions = {
-                    // Messages icon with badge
-                    BadgedBox(badge = {}) {
-                        IconButton(onClick = onOpenMessages) {
-                            Icon(Icons.Default.Message, "Messages", tint = White)
-                        }
-                    }
                     IconButton(onClick = { themeViewModel.toggleDarkMode() }) {
                         Icon(if (isDark) Icons.Default.LightMode else Icons.Default.DarkMode,
                             "Toggle theme", tint = White)
