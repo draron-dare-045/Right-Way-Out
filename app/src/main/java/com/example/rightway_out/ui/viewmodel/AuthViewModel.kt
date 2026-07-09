@@ -18,9 +18,17 @@ data class AuthState(
 @HiltViewModel
 class AuthViewModel @Inject constructor(private val auth: FirebaseAuth) : ViewModel() {
 
-    private val _authState = MutableStateFlow(AuthState(isLoggedIn = auth.currentUser != null))
+    // NEVER initialise isLoggedIn from auth.currentUser here.
+    // NavGraph checks Firebase directly so we always start at LOGIN
+    // and route correctly after the role check. This prevents the
+    // "comes back as wrong user" bug.
+    private val _authState = MutableStateFlow(AuthState(isLoggedIn = false))
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
+
     val currentUser get() = auth.currentUser
+
+    // Check if already logged in on app start (called from NavGraph)
+    fun checkSession(): Boolean = auth.currentUser != null
 
     fun login(email: String, password: String) {
         if (email.isBlank() || password.isBlank()) {
@@ -33,7 +41,9 @@ class AuthViewModel @Inject constructor(private val auth: FirebaseAuth) : ViewMo
                 auth.signInWithEmailAndPassword(email, password).await()
                 _authState.update { it.copy(isLoading = false, isLoggedIn = true) }
             } catch (e: Exception) {
-                _authState.update { it.copy(isLoading = false, errorMessage = e.localizedMessage ?: "Login failed.") }
+                _authState.update {
+                    it.copy(isLoading = false, errorMessage = e.localizedMessage ?: "Login failed.")
+                }
             }
         }
     }

@@ -30,75 +30,65 @@ class ShoppingViewModel @Inject constructor(
 
     fun loadItems(studentId: String) {
         viewModelScope.launch {
-            // Observe local Room DB
             dao.getItemsForStudent(studentId)
                 .combine(dao.getTotalCostForStudent(studentId)) { items, total ->
                     ShoppingUiState(items = items, totalCost = total ?: 0.0)
-                }
-                .collect { _state.value = it }
+                }.collect { _state.value = it }
         }
-        // Sync from Firestore in background
         viewModelScope.launch { syncFromFirestore(studentId) }
     }
 
     private suspend fun syncFromFirestore(studentId: String) {
         try {
-            val snapshot = firestore.collection("students")
-                .document(studentId)
-                .collection("shopping_list")
-                .get().await()
-
-            val entities = snapshot.documents.map { doc ->
+            val snap = firestore.collection("students").document(studentId)
+                .collection("shopping_list").get().await()
+            val entities = snap.documents.map { doc ->
                 ShoppingItemEntity(
-                    id           = doc.id,
-                    studentId    = studentId,
-                    name         = doc.getString("name") ?: "",
-                    quantity     = (doc.getLong("quantity") ?: 1L).toInt(),
-                    unit         = doc.getString("unit") ?: "pcs",
+                    id = doc.id, studentId = studentId,
+                    name = doc.getString("name") ?: "",
+                    quantity = (doc.getLong("quantity") ?: 1L).toInt(),
+                    unit = doc.getString("unit") ?: "pcs",
                     estimatedCost = doc.getDouble("estimatedCost") ?: 0.0,
-                    isPurchased  = doc.getBoolean("isPurchased") ?: false,
-                    category     = doc.getString("category") ?: "General",
-                    notes        = doc.getString("notes") ?: "",
-                    createdAt    = doc.getLong("createdAt") ?: System.currentTimeMillis()
+                    isPurchased = doc.getBoolean("isPurchased") ?: false,
+                    category = doc.getString("category") ?: "General",
+                    notes = doc.getString("notes") ?: "",
+                    createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis()
                 )
             }
             dao.upsertItems(entities)
-        } catch (e: Exception) {
-            // Silently fail — Room data still shows
+        } catch (_: Exception) {}
+    }
+
+    fun addItem(studentId: String, name: String, quantity: Int, unit: String,
+        estimatedCost: Double, category: String, notes: String) {
+        viewModelScope.launch {
+            val id = UUID.randomUUID().toString()
+            val item = ShoppingItemEntity(id = id, studentId = studentId, name = name,
+                quantity = quantity, unit = unit, estimatedCost = estimatedCost,
+                category = category, notes = notes)
+            dao.upsertItem(item)
+            try {
+                firestore.collection("students").document(studentId)
+                    .collection("shopping_list").document(id)
+                    .set(mapOf("name" to name, "quantity" to quantity, "unit" to unit,
+                        "estimatedCost" to estimatedCost, "category" to category,
+                        "notes" to notes, "isPurchased" to false, "createdAt" to item.createdAt)).await()
+            } catch (_: Exception) {}
         }
     }
 
-    fun addItem(
-        studentId: String,
-        name: String,
-        quantity: Int,
-        unit: String,
-        estimatedCost: Double,
-        category: String,
-        notes: String
-    ) {
+    fun updateItem(studentId: String, item: ShoppingItemEntity, name: String, quantity: Int,
+        unit: String, estimatedCost: Double, category: String, notes: String) {
         viewModelScope.launch {
-            val id = UUID.randomUUID().toString()
-            val item = ShoppingItemEntity(
-                id = id, studentId = studentId, name = name,
-                quantity = quantity, unit = unit,
-                estimatedCost = estimatedCost, category = category,
-                notes = notes, isPurchased = false
-            )
-            // Save to Room immediately
-            dao.upsertItem(item)
-
-            // Sync to Firestore
+            val updated = item.copy(name = name, quantity = quantity, unit = unit,
+                estimatedCost = estimatedCost, category = category, notes = notes)
+            dao.upsertItem(updated)
             try {
-                val data = hashMapOf(
-                    "name" to name, "quantity" to quantity, "unit" to unit,
-                    "estimatedCost" to estimatedCost, "category" to category,
-                    "notes" to notes, "isPurchased" to false,
-                    "createdAt" to item.createdAt
-                )
                 firestore.collection("students").document(studentId)
-                    .collection("shopping_list").document(id).set(data).await()
-            } catch (e: Exception) { /* Room already saved it */ }
+                    .collection("shopping_list").document(item.id)
+                    .update(mapOf("name" to name, "quantity" to quantity, "unit" to unit,
+                        "estimatedCost" to estimatedCost, "category" to category, "notes" to notes)).await()
+            } catch (_: Exception) {}
         }
     }
 
@@ -110,7 +100,7 @@ class ShoppingViewModel @Inject constructor(
                 firestore.collection("students").document(studentId)
                     .collection("shopping_list").document(item.id)
                     .update("isPurchased", newValue).await()
-            } catch (e: Exception) { /* Room already updated */ }
+            } catch (_: Exception) {}
         }
     }
 
@@ -120,7 +110,7 @@ class ShoppingViewModel @Inject constructor(
             try {
                 firestore.collection("students").document(studentId)
                     .collection("shopping_list").document(itemId).delete().await()
-            } catch (e: Exception) { /* Room already deleted */ }
+            } catch (_: Exception) {}
         }
     }
 }

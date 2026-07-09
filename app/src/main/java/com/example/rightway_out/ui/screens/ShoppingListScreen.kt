@@ -30,7 +30,7 @@ val units       = listOf("pcs", "pairs", "kg", "litres", "boxes", "packets", "se
 
 fun categoryColor(category: String): Color = when (category) {
     "Stationery" -> Color(0xFF1565C0)
-    "Uniform"    -> MaroonPrimary
+    "Uniform"    -> Maroon700
     "Bedding"    -> Color(0xFF6A1B9A)
     "Toiletries" -> Color(0xFF00838F)
     "Food"       -> Color(0xFF2E7D32)
@@ -66,19 +66,19 @@ fun ShoppingListScreen(
                         Icon(Icons.Default.ArrowBack, "Back")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaroonPrimary,
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Maroon700,
                     titleContentColor = White, navigationIconContentColor = White)
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
-                containerColor = MaroonPrimary, contentColor = White
+                containerColor = Maroon700, contentColor = White
             ) {
                 Icon(Icons.Default.Add, "Add Item")
             }
         },
-        containerColor = CreamBackground
+        containerColor = Cream
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
 
@@ -87,7 +87,7 @@ fun ShoppingListScreen(
             val purchased = state.items.count { it.isPurchased }
             Row(
                 modifier = Modifier.fillMaxWidth()
-                    .background(MaroonDark).padding(horizontal = 16.dp, vertical = 12.dp),
+                    .background(Maroon800).padding(horizontal = 16.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -98,7 +98,7 @@ fun ShoppingListScreen(
                         color = White.copy(alpha = 0.7f), fontSize = 11.sp)
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("Est. Total", color = GoldAccent, fontSize = 11.sp)
+                    Text("Est. Total", color = Gold, fontSize = 11.sp)
                     Text("KSH %.0f".format(state.totalCost),
                         color = White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
@@ -109,10 +109,10 @@ fun ShoppingListScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Icon(Icons.Default.ShoppingCart, null, modifier = Modifier.size(64.dp),
-                            tint = MaroonPrimary.copy(alpha = 0.3f))
-                        Text("No items yet", fontWeight = FontWeight.SemiBold, color = TextMedium)
+                            tint = Maroon700.copy(alpha = 0.3f))
+                        Text("No items yet", fontWeight = FontWeight.SemiBold, color = TextMid)
                         Text("Tap + to add items you need\nfor the next school term",
-                            fontSize = 13.sp, color = TextMedium.copy(alpha = 0.7f),
+                            fontSize = 13.sp, color = TextMid.copy(alpha = 0.7f),
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                     }
                 }
@@ -165,12 +165,12 @@ fun ShoppingListScreen(
     itemToDelete?.let { item ->
         AlertDialog(
             onDismissRequest = { itemToDelete = null },
-            icon = { Icon(Icons.Default.Delete, null, tint = MaroonPrimary) },
+            icon = { Icon(Icons.Default.Delete, null, tint = Maroon700) },
             title = { Text("Remove Item?") },
             text = { Text("Remove '${item.name}' from your shopping list?") },
             confirmButton = {
                 Button(onClick = { viewModel.deleteItem(studentId, item.id); itemToDelete = null },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaroonPrimary)) {
+                    colors = ButtonDefaults.buttonColors(containerColor = Maroon700)) {
                     Text("Remove")
                 }
             },
@@ -189,7 +189,7 @@ private fun ShoppingItemCard(
         modifier = Modifier.fillMaxWidth().alpha(if (item.isPurchased) 0.6f else 1f),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (item.isPurchased) CreamSurface else White
+            containerColor = if (item.isPurchased) CreamDark else White
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = if (item.isPurchased) 0.dp else 2.dp)
     ) {
@@ -202,8 +202,8 @@ private fun ShoppingItemCard(
                 checked = item.isPurchased,
                 onCheckedChange = { onToggle() },
                 colors = CheckboxDefaults.colors(
-                    checkedColor = ForestGreen,
-                    uncheckedColor = MaroonPrimary
+                    checkedColor = Forest,
+                    uncheckedColor = Maroon700
                 )
             )
 
@@ -214,19 +214,19 @@ private fun ShoppingItemCard(
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 15.sp,
                     textDecoration = if (item.isPurchased) TextDecoration.LineThrough else null,
-                    color = if (item.isPurchased) TextMedium else TextDark
+                    color = if (item.isPurchased) TextMid else TextDark
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("${item.quantity} ${item.unit}", fontSize = 12.sp, color = TextMedium)
+                    Text("${item.quantity} ${item.unit}", fontSize = 12.sp, color = TextMid)
                     if (item.estimatedCost > 0) {
-                        Text("·", fontSize = 12.sp, color = TextMedium)
+                        Text("·", fontSize = 12.sp, color = TextMid)
                         Text("KSH %.0f".format(item.estimatedCost * item.quantity),
-                            fontSize = 12.sp, color = MaroonPrimary, fontWeight = FontWeight.SemiBold)
+                            fontSize = 12.sp, color = Maroon700, fontWeight = FontWeight.SemiBold)
                     }
                 }
                 if (item.notes.isNotBlank()) {
                     Text(item.notes, fontSize = 11.sp,
-                        color = TextMedium.copy(alpha = 0.7f))
+                        color = TextMid.copy(alpha = 0.7f))
                 }
             }
 
@@ -242,7 +242,7 @@ private fun ShoppingItemCard(
 
             // Delete
             IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Default.DeleteOutline, null, tint = TextMedium.copy(alpha = 0.5f),
+                Icon(Icons.Default.DeleteOutline, null, tint = TextMid.copy(alpha = 0.5f),
                     modifier = Modifier.size(18.dp))
             }
         }
@@ -272,15 +272,15 @@ private fun AddItemDialog(
                 .then(Modifier), // scroll if needed
                 verticalArrangement = Arrangement.spacedBy(12.dp)) {
 
-                Text("Add Item", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaroonPrimary)
+                Text("Add Item", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Maroon700)
 
                 OutlinedTextField(value = name, onValueChange = { name = it; nameError = false },
                     label = { Text("Item Name *") },
                     isError = nameError,
                     supportingText = if (nameError) {{ Text("Name is required") }} else null,
                     singleLine = true, modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaroonPrimary,
-                        focusedLabelColor = MaroonPrimary))
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Maroon700,
+                        focusedLabelColor = Maroon700))
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(value = quantity,
@@ -288,8 +288,8 @@ private fun AddItemDialog(
                         label = { Text("Qty") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true, modifier = Modifier.weight(1f),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaroonPrimary,
-                            focusedLabelColor = MaroonPrimary))
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Maroon700,
+                            focusedLabelColor = Maroon700))
 
                     ExposedDropdownMenuBox(expanded = unitExpanded,
                         onExpandedChange = { unitExpanded = !unitExpanded },
@@ -298,8 +298,8 @@ private fun AddItemDialog(
                             label = { Text("Unit") },
                             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(unitExpanded) },
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaroonPrimary,
-                                focusedLabelColor = MaroonPrimary))
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Maroon700,
+                                focusedLabelColor = Maroon700))
                         ExposedDropdownMenu(expanded = unitExpanded,
                             onDismissRequest = { unitExpanded = false }) {
                             units.forEach { u ->
@@ -314,8 +314,8 @@ private fun AddItemDialog(
                     label = { Text("Est. Cost per unit (KSH)") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true, modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaroonPrimary,
-                        focusedLabelColor = MaroonPrimary))
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Maroon700,
+                        focusedLabelColor = Maroon700))
 
                 ExposedDropdownMenuBox(expanded = catExpanded,
                     onExpandedChange = { catExpanded = !catExpanded }) {
@@ -323,8 +323,8 @@ private fun AddItemDialog(
                         label = { Text("Category") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(catExpanded) },
                         modifier = Modifier.menuAnchor().fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaroonPrimary,
-                            focusedLabelColor = MaroonPrimary))
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Maroon700,
+                            focusedLabelColor = Maroon700))
                     ExposedDropdownMenu(expanded = catExpanded,
                         onDismissRequest = { catExpanded = false }) {
                         categories.forEach { cat ->
@@ -337,8 +337,8 @@ private fun AddItemDialog(
                 OutlinedTextField(value = notes, onValueChange = { notes = it },
                     label = { Text("Notes (optional)") },
                     singleLine = true, modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = MaroonPrimary,
-                        focusedLabelColor = MaroonPrimary))
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Maroon700,
+                        focusedLabelColor = Maroon700))
 
                 Row(modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
@@ -355,7 +355,7 @@ private fun AddItemDialog(
                                 notes.trim()
                             )
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaroonPrimary)
+                        colors = ButtonDefaults.buttonColors(containerColor = Maroon700)
                     ) { Text("Add Item") }
                 }
             }

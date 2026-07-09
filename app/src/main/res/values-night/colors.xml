@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="maroon_dark">#1A0508</color>
+    <color name="maroon_primary">#9B2535</color>
+    <color name="gold">#D4B46A</color>
+    <color name="cream">#1A1A1A</color>
+    <color name="forest">#3D7A35</color>
+    <color name="white">#E0E0E0</color>
+</resources>

@@ -16,179 +16,287 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.rightway_out.domain.model.StudentModel
 import com.example.rightway_out.ui.components.DepartmentCard
+import com.example.rightway_out.ui.components.SkeletonBlock
 import com.example.rightway_out.ui.theme.*
 import com.example.rightway_out.ui.viewmodel.ClearanceViewModel
+import com.example.rightway_out.ui.viewmodel.ThemeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentDashboard(
     studentId: String,
     onLogout: () -> Unit,
-    onOpenShoppingList: () -> Unit,
+    themeViewModel: ThemeViewModel,
     viewModel: ClearanceViewModel = hiltViewModel()
 ) {
     val state by viewModel.dashboardState.collectAsState()
-    LaunchedEffect(studentId) { viewModel.loadStudentDashboard(studentId) }
+    var showMoreOptions by remember { mutableStateOf(false) }
+
+    LaunchedEffect(studentId) {
+        viewModel.loadStudentDashboard(studentId)
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Column {
-                        Text("RightWay Out", fontWeight = FontWeight.Bold)
-                        Text("Kapsabet High School", fontSize = 12.sp,
-                            color = White.copy(alpha = 0.75f))
+                        Text("My Clearance", fontWeight = FontWeight.Bold, color = White)
+                        Text("Kapsabet High School", fontSize = 12.sp, color = White.copy(alpha = 0.7f))
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.signOut(onLogout) }) {
-                        Icon(Icons.Default.Logout, "Logout", tint = White)
+                    IconButton(onClick = { showMoreOptions = !showMoreOptions }) {
+                        Icon(Icons.Default.MoreVert, "More", tint = White)
+                    }
+                    DropdownMenu(
+                        expanded = showMoreOptions,
+                        onDismissRequest = { showMoreOptions = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Settings") },
+                            onClick = { showMoreOptions = false },
+                            leadingIcon = { Icon(Icons.Default.Settings, null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Help") },
+                            onClick = { showMoreOptions = false },
+                            leadingIcon = { Icon(Icons.Default.Help, null) }
+                        )
+                        Divider()
+                        DropdownMenuItem(
+                            text = { Text("Logout", color = Maroon700) },
+                            onClick = {
+                                showMoreOptions = false
+                                viewModel.signOut(onLogout)
+                            },
+                            leadingIcon = { Icon(Icons.Default.Logout, null, tint = Maroon700) }
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaroonPrimary,
-                    titleContentColor = White
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Maroon700)
             )
         },
-        containerColor = CreamBackground
+        containerColor = Cream
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when {
-                state.isLoading && state.student == null ->
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center),
-                        color = MaroonPrimary)
-                state.errorMessage != null && state.student == null ->
-                    Column(modifier = Modifier.align(Alignment.Center).padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.WifiOff, null, tint = MaroonPrimary,
-                            modifier = Modifier.size(48.dp))
-                        Spacer(Modifier.height(12.dp))
-                        Text(state.errorMessage!!, color = MaroonPrimary)
-                        Spacer(Modifier.height(16.dp))
-                        Button(onClick = { viewModel.loadStudentDashboard(studentId) },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaroonPrimary)) {
-                            Text("Retry")
-                        }
-                    }
-                state.student != null ->
-                    DashboardContent(student = state.student!!,
-                        onOpenShoppingList = onOpenShoppingList)
+                state.isLoading && state.student == null -> {
+                    DashboardSkeleton()
+                }
+                state.errorMessage != null && state.student == null -> {
+                    ErrorState(
+                        message = state.errorMessage!!,
+                        onRetry = { viewModel.loadStudentDashboard(studentId) }
+                    )
+                }
+                state.student != null -> {
+                    DashboardContent(student = state.student!!)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun DashboardContent(student: StudentModel, onOpenShoppingList: () -> Unit) {
+private fun ErrorState(
+    message: String,
+    onRetry: () -> Unit
+) {
     Column(
-        modifier = Modifier.verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        // ── Student header ─────────────────────────────────────────────────
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = MaroonPrimary)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(20.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier.size(58.dp).background(GoldAccent, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(student.name.take(2).uppercase(), fontSize = 22.sp,
-                        fontWeight = FontWeight.ExtraBold, color = White)
-                }
-                Spacer(Modifier.width(14.dp))
-                Column {
-                    Text(student.name, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = White)
-                    Text("Adm: ${student.admissionNumber}", fontSize = 13.sp,
-                        color = White.copy(alpha = 0.8f))
-                    Text(student.email, fontSize = 12.sp, color = White.copy(alpha = 0.6f))
-                }
-            }
-        }
-
-        // ── Overall status banner ──────────────────────────────────────────
-        val (bg, fg, icon, label, msg) = when {
-            student.hasFlaggedDepartment -> BannerData(
-                Color(0xFFFFEBEE), MaroonPrimary, Icons.Default.Cancel,
-                "Action Required", "One or more departments require your attention.")
-            student.isFullyCleared -> BannerData(
-                Color(0xFFE8F5E9), ForestGreen, Icons.Default.CheckCircle,
-                "Fully Cleared", "You have been cleared by all departments.")
-            else -> BannerData(
-                Color(0xFFFFF8E1), Color(0xFFE65100), Icons.Default.HourglassEmpty,
-                "Clearance Pending", "Your clearance is being processed.")
-        }
-        Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = bg)) {
-            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, null, tint = fg, modifier = Modifier.size(28.dp))
-                Spacer(Modifier.width(12.dp))
-                Column {
-                    Text(label, fontWeight = FontWeight.Bold, color = fg)
-                    Text(msg, fontSize = 12.sp, color = fg.copy(alpha = 0.8f))
-                }
-            }
-        }
-
-        // ── Department clearances ──────────────────────────────────────────
-        Text("Clearance Status", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = MaroonPrimary)
-
-        DepartmentCard("Library",  Icons.Default.MenuBook,      student.libraryStatus,  student.libraryComment)
-        DepartmentCard("Boarding", Icons.Default.Hotel,          student.boardingStatus, student.boardingComment)
-        DepartmentCard("Sports",   Icons.Default.SportsSoccer,  student.sportsStatus,   student.sportsComment)
-        DepartmentCard("Finance",  Icons.Default.AccountBalance, student.financeStatus,  student.financeComment)
-
-        // ── Shopping List card ─────────────────────────────────────────────
-        Spacer(Modifier.height(4.dp))
-        Card(
-            onClick = onOpenShoppingList,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = MaroonDark)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(20.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(modifier = Modifier.size(48.dp)
-                    .background(GoldAccent.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
-                    contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.ShoppingCart, null, tint = GoldAccent,
-                        modifier = Modifier.size(26.dp))
-                }
-                Spacer(Modifier.width(14.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("My Shopping List", fontWeight = FontWeight.Bold, fontSize = 16.sp,
-                        color = White)
-                    Text("Track items needed for next term", fontSize = 12.sp,
-                        color = White.copy(alpha = 0.7f))
-                }
-                Icon(Icons.Default.ChevronRight, null, tint = GoldAccent)
-            }
-        }
-
+        Icon(
+            Icons.Default.WifiOff,
+            null,
+            tint = Maroon700,
+            modifier = Modifier.size(56.dp)
+        )
         Spacer(Modifier.height(16.dp))
+        Text(
+            "Connection Error",
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            color = Maroon700
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            message,
+            fontSize = 14.sp,
+            color = TextDark,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(24.dp))
+        Button(
+            onClick = onRetry,
+            colors = ButtonDefaults.buttonColors(containerColor = Maroon700)
+        ) {
+            Icon(Icons.Default.Refresh, null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("Retry", fontWeight = FontWeight.SemiBold)
+        }
     }
 }
 
+@Composable
+private fun DashboardContent(student: StudentModel) {
+    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+        // Hero Header
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Brush.verticalGradient(listOf(Maroon800, Maroon700)))
+                .padding(24.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Surface(
+                    modifier = Modifier.size(72.dp),
+                    shape = CircleShape,
+                    color = Gold,
+                    shadowElevation = 4.dp
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            student.name.take(2).uppercase(),
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = White
+                        )
+                    }
+                }
+                Spacer(Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(student.name, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = White)
+                    Text("Adm: ${student.admissionNumber}", fontSize = 13.sp, color = Gold)
+                    Text(student.email, fontSize = 11.sp, color = White.copy(alpha = 0.7f))
+                }
+            }
+        }
+
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            StatusBanner(student = student)
+            SectionHeader("Department Status")
+            DepartmentStatusGrid(student = student)
+            SectionHeader("Need Help?")
+            HelpCard()
+            Spacer(Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+private fun StatusBanner(student: StudentModel) {
+    val isFlagged = student.hasFlaggedDepartment
+    val isCleared = student.isFullyCleared
+
+    val (bgColor, fgColor, icon, label, msg) = when {
+        isFlagged -> BannerData(Color(0xFFFFEBEE), Maroon700, Icons.Default.Cancel, "Action Required", "One or more departments require your attention")
+        isCleared -> BannerData(Color(0xFFE8F5E9), Forest, Icons.Default.CheckCircle, "Fully Cleared", "You have been cleared by all departments")
+        else -> BannerData(Color(0xFFFFF3E0), Color(0xFFE65100), Icons.Default.HourglassEmpty, "Clearance Pending", "Your clearance is being processed")
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = bgColor),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Surface(modifier = Modifier.size(40.dp), shape = CircleShape, color = fgColor.copy(alpha = 0.1f)) {
+                Icon(icon, null, tint = fgColor, modifier = Modifier.padding(8.dp))
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(label, fontWeight = FontWeight.Bold, color = fgColor, fontSize = 14.sp)
+                Text(msg, fontSize = 12.sp, color = fgColor.copy(alpha = 0.75f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun DepartmentStatusGrid(student: StudentModel) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        DepartmentCard("Library", Icons.Default.MenuBook, student.libraryStatus, student.libraryComment)
+        DepartmentCard("Boarding", Icons.Default.Hotel, student.boardingStatus, student.boardingComment)
+        DepartmentCard("Sports", Icons.Default.SportsSoccer, student.sportsStatus, student.sportsComment)
+        DepartmentCard("Finance", Icons.Default.AccountBalance, student.financeStatus, student.financeComment)
+    }
+}
+
+@Composable
+private fun HelpCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF9E6))
+    ) {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Info, null, tint = Color(0xFFF57F17), modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Clearance Tips", fontWeight = FontWeight.Bold, color = Color(0xFFF57F17))
+            }
+            Text(
+                "• Check each department's requirements\n• Keep your profile updated\n• Message admin for clarification",
+                fontSize = 12.sp,
+                color = Color(0xFF664D00),
+                lineHeight = 18.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun SectionHeader(title: String) {
+    Text(
+        title,
+        fontWeight = FontWeight.Bold,
+        fontSize = 15.sp,
+        color = Maroon700,
+        modifier = Modifier.padding(vertical = 4.dp)
+    )
+}
+
 private data class BannerData(
-    val bg: Color, val fg: Color, val icon: ImageVector,
-    val label: String, val msg: String
+    val bg: Color,
+    val fg: Color,
+    val icon: ImageVector,
+    val label: String,
+    val msg: String
 )
-private operator fun BannerData.component1() = bg
-private operator fun BannerData.component2() = fg
-private operator fun BannerData.component3() = icon
-private operator fun BannerData.component4() = label
-private operator fun BannerData.component5() = msg
+
+@Composable
+private fun DashboardSkeleton() {
+    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+        Box(modifier = Modifier.fillMaxWidth().background(Brush.verticalGradient(listOf(Maroon800, Maroon700))).padding(24.dp)) {
+            Row {
+                SkeletonBlock(modifier = Modifier.size(72.dp), shape = CircleShape)
+                Spacer(Modifier.width(16.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SkeletonBlock(modifier = Modifier.width(160.dp).height(18.dp))
+                    SkeletonBlock(modifier = Modifier.width(100.dp).height(12.dp))
+                }
+            }
+        }
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            SkeletonBlock(modifier = Modifier.fillMaxWidth().height(80.dp), shape = RoundedCornerShape(16.dp))
+            repeat(4) {
+                SkeletonBlock(modifier = Modifier.fillMaxWidth().height(60.dp), shape = RoundedCornerShape(12.dp))
+            }
+        }
+    }
+}

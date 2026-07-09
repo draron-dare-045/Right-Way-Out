@@ -2,6 +2,7 @@ package com.example.rightway_out.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.rightway_out.data.local.StudentDao
 import com.example.rightway_out.domain.model.StudentModel
 import com.example.rightway_out.domain.repository.ClearanceRepository
 import com.example.rightway_out.util.Resource
@@ -18,7 +19,8 @@ data class UpdateState(val isUpdating: Boolean = false, val successMessage: Stri
 @HiltViewModel
 class ClearanceViewModel @Inject constructor(
     private val repository: ClearanceRepository,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val dao: StudentDao
 ) : ViewModel() {
 
     private val _dashboardState = MutableStateFlow(StudentDashboardState())
@@ -64,7 +66,7 @@ class ClearanceViewModel @Inject constructor(
             val result = repository.updateClearanceStatus(studentId, department, status, comment)
             _updateState.update {
                 when (result) {
-                    is Resource.Success -> it.copy(isUpdating = false, successMessage = "Clearance updated successfully.")
+                    is Resource.Success -> it.copy(isUpdating = false, successMessage = "Updated successfully.")
                     is Resource.Error   -> it.copy(isUpdating = false, errorMessage = result.message)
                     is Resource.Loading -> it
                 }
@@ -73,11 +75,13 @@ class ClearanceViewModel @Inject constructor(
     }
 
     fun clearUpdateFeedback() = _updateState.update { it.copy(successMessage = null, errorMessage = null) }
+
     val currentUserId get() = auth.currentUser?.uid
 
+    // Signs out AND clears ALL local Room cache so next login starts fresh
     fun signOut(onComplete: () -> Unit) {
         viewModelScope.launch {
-            repository.clearLocalCache()
+            try { dao.clearAllStudents() } catch (_: Exception) {}
             auth.signOut()
             onComplete()
         }

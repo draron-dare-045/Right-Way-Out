@@ -1,15 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Kapsabet High School palette -->
-    <color name="maroon_primary">#7B1E28</color>
     <color name="maroon_dark">#4A0E14</color>
-    <color name="maroon_light">#A83240</color>
-    <color name="cream_background">#FAF6F0</color>
-    <color name="cream_surface">#F5EFE6</color>
-    <color name="forest_green">#2D5A27</color>
-    <color name="forest_green_light">#4A7C43</color>
+    <color name="maroon_primary">#7B1E28</color>
+    <color name="gold">#C9A84C</color>
+    <color name="cream">#FAF6F0</color>
+    <color name="forest">#2D5A27</color>
     <color name="white">#FFFFFF</color>
-    <color name="gold_accent">#C9A84C</color>
-    <color name="text_dark">#1C1B1F</color>
-    <color name="text_medium">#49454F</color>
 </resources>

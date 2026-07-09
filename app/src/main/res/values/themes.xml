@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <style name="Theme.RightWayOut.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#4A0E14</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenIconBackgroundColor">#4A0E14</item>
+        <item name="windowSplashScreenAnimationDuration">600</item>
+        <item name="postSplashScreenTheme">@style/Theme.RightWayOut</item>
+    </style>
     <style name="Theme.RightWayOut" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:statusBarColor">@color/maroon_dark</item>
-        <item name="android:navigationBarColor">@color/maroon_dark</item>
+        <item name="android:statusBarColor">#4A0E14</item>
+        <item name="android:navigationBarColor">#4A0E14</item>
+        <item name="android:windowBackground">#4A0E14</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
     </style>
 </resources>
