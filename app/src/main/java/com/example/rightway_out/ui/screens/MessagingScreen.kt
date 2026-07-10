@@ -97,6 +97,14 @@ fun MessagingScreen(
         }
     }
 
+    // Clear this chat's unread badge for the current viewer whenever they're
+    // actively looking at it — mirrors WhatsApp marking a thread read on open.
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
+            markChatAsRead(studentId, viewerIsAdmin = isAdmin)
+        }
+    }
+
     // Realtime messages listener
     DisposableEffect(chatRef) {
         val listener = object : ChildEventListener {

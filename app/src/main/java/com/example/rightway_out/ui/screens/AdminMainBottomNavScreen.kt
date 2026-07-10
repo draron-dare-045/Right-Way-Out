@@ -2,6 +2,8 @@ package com.example.rightway_out.ui.screens
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -41,6 +43,8 @@ fun AdminMainBottomNavScreen(
         mutableStateOf(AdminNavItem.Dashboard.route)
     }
 
+    val unreadMessages = rememberAdminTotalUnreadCount()
+
     Scaffold(
         bottomBar = {
             NavigationBar(
@@ -54,10 +58,25 @@ fun AdminMainBottomNavScreen(
                             currentRoute = item.route
                         },
                         icon = {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = item.title
-                            )
+                            if (item.route == AdminNavItem.Messages.route && unreadMessages > 0) {
+                                BadgedBox(
+                                    badge = {
+                                        Badge(containerColor = Maroon700Admin) {
+                                            Text(if (unreadMessages > 99) "99+" else unreadMessages.toString())
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = item.icon,
+                                        contentDescription = item.title
+                                    )
+                                }
+                            } else {
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = item.title
+                                )
+                            }
                         },
                         label = {
                             Text(text = item.title)

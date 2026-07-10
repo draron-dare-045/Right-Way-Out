@@ -155,6 +155,9 @@ private fun ConversationRow(conv: ConversationPreview, onClick: () -> Unit) {
         sdf.format(Date(conv.timestamp))
     } else ""
 
+    val unreadCount = rememberChatUnreadCount(studentId = conv.studentId, viewerIsAdmin = true)
+    val hasUnread = unreadCount > 0
+
     Row(modifier = Modifier.fillMaxWidth().clickable { onClick() }
         .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically) {
@@ -167,12 +170,30 @@ private fun ConversationRow(conv: ConversationPreview, onClick: () -> Unit) {
         }
         Spacer(Modifier.width(14.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(conv.studentName, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
-            Text(conv.lastMessage, fontSize = 13.sp, color = TextLight,
+            Text(conv.studentName,
+                fontWeight = if (hasUnread) FontWeight.Bold else FontWeight.SemiBold,
+                fontSize = 15.sp)
+            Text(conv.lastMessage, fontSize = 13.sp,
+                color = if (hasUnread) TextDark else TextLight,
+                fontWeight = if (hasUnread) FontWeight.Medium else FontWeight.Normal,
                 maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        Column(horizontalAlignment = Alignment.End) {
-            Text(timeStr, fontSize = 11.sp, color = TextLight)
+        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(timeStr, fontSize = 11.sp,
+                color = if (hasUnread) Forest else TextLight,
+                fontWeight = if (hasUnread) FontWeight.Bold else FontWeight.Normal)
+            if (hasUnread) {
+                Box(
+                    modifier = Modifier.background(Forest, CircleShape)
+                        .padding(horizontal = 7.dp, vertical = 2.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        if (unreadCount > 99) "99+" else unreadCount.toString(),
+                        fontSize = 11.sp, fontWeight = FontWeight.Bold, color = White
+                    )
+                }
+            }
         }
     }
     Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))

@@ -2,6 +2,8 @@ package com.example.rightway_out.ui.screens
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -42,6 +44,11 @@ fun MainBottomNavScreen(
         mutableStateOf(BottomNavItem.Dashboard.route)
     }
 
+    val unreadMessages = rememberChatUnreadCount(
+        studentId = getCurrentStudentId(),
+        viewerIsAdmin = false
+    )
+
     Scaffold(
         bottomBar = {
             NavigationBar(
@@ -55,10 +62,25 @@ fun MainBottomNavScreen(
                             currentRoute = item.route
                         },
                         icon = {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = item.title
-                            )
+                            if (item.route == BottomNavItem.Messages.route && unreadMessages > 0) {
+                                BadgedBox(
+                                    badge = {
+                                        Badge(containerColor = Maroon700) {
+                                            Text(if (unreadMessages > 99) "99+" else unreadMessages.toString())
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = item.icon,
+                                        contentDescription = item.title
+                                    )
+                                }
+                            } else {
+                                Icon(
+                                    imageVector = item.icon,
+                                    contentDescription = item.title
+                                )
+                            }
                         },
                         label = {
                             Text(text = item.title)
