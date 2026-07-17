@@ -1,9 +1,11 @@
 package com.example.rightway_out.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 // ── Brand colours ─────────────────────────────────────────
 val Maroon900   = Color(0xFF1A0508)
@@ -79,11 +81,25 @@ private val DarkColorScheme = darkColorScheme(
     outline            = Color(0xFF9F8D8D),
 )
 
+// Shared corner language: crisp on small controls, softer on cards/sheets.
+val KapsabetShapes = Shapes(
+    extraSmall = RoundedCornerShape(6.dp),
+    small      = RoundedCornerShape(10.dp),
+    medium     = RoundedCornerShape(14.dp),
+    large      = RoundedCornerShape(20.dp),
+    extraLarge = RoundedCornerShape(28.dp),
+)
+
 @Composable
 fun KapsabetTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-    MaterialTheme(colorScheme = colorScheme, content = content)
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography  = KapsabetTypography,
+        shapes      = KapsabetShapes,
+        content     = content
+    )
 }

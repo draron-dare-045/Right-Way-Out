@@ -2,6 +2,7 @@ package com.example.rightway_out.ui.screens
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -53,8 +54,9 @@ fun AdminScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Admin Panel", fontWeight = FontWeight.Bold, color = White)
-                        Text("Kapsabet High School", fontSize = 12.sp, color = White.copy(alpha = 0.7f))
+                        Text("Admin Panel", style = MaterialTheme.typography.titleLarge, color = White)
+                        Text("Kapsabet High School", style = MaterialTheme.typography.bodySmall,
+                            color = White.copy(alpha = 0.75f), letterSpacing = 0.5.sp)
                     }
                 },
                 actions = {
@@ -73,7 +75,8 @@ fun AdminScreen(
             ExtendedFloatingActionButton(
                 onClick = onAddStudent,
                 icon    = { Icon(Icons.Default.PersonAdd, null) },
-                text    = { Text("Add Student") },
+                text    = { Text("Add Student", style = MaterialTheme.typography.labelLarge) },
+                shape   = MaterialTheme.shapes.large,
                 containerColor = Gold, contentColor = Maroon900
             )
         },
@@ -81,14 +84,15 @@ fun AdminScreen(
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
 
-            // Stats banner
+            // Stats banner — a faint seal/emblem watermark nods to the fact that
+            // clearance is, in effect, an official record being certified.
             Box(modifier = Modifier.fillMaxWidth()
-                .background(Brush.horizontalGradient(listOf(Maroon800, Maroon700)))
-                .padding(16.dp)) {
-                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                .background(Brush.horizontalGradient(listOf(Maroon800, Maroon700)))) {
+                SealWatermark(modifier = Modifier.matchParentSize())
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Row(modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly) {
-                        StatChip("Total",   state.students.size.toString(), Icons.Default.Group)
+                        StatChip("Total",   state.students.size.toString(), Icons.Default.Group, White)
                         StatChip("Cleared", state.students.count { it.isFullyCleared }.toString(),
                             Icons.Default.CheckCircle, Forest)
                         StatChip("Flagged", state.students.count { it.hasFlaggedDepartment }.toString(),
@@ -108,7 +112,8 @@ fun AdminScreen(
 
             OutlinedTextField(
                 value = searchQuery, onValueChange = { searchQuery = it },
-                placeholder = { Text("Search by name or admission no...") },
+                placeholder = { Text("Search by name or admission no.", style = MaterialTheme.typography.bodyMedium) },
+                textStyle = MaterialTheme.typography.bodyMedium,
                 leadingIcon = { Icon(Icons.Default.Search, null, tint = Maroon700) },
                 trailingIcon = {
                     if (searchQuery.isNotBlank()) IconButton(onClick = { searchQuery = "" }) {
@@ -117,9 +122,10 @@ fun AdminScreen(
                 },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(14.dp),
+                shape = MaterialTheme.shapes.medium,
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Maroon700,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
                     unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                     focusedContainerColor = MaterialTheme.colorScheme.surface)
             )
@@ -130,9 +136,14 @@ fun AdminScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 listOf("All", "Pending", "Cleared", "Flagged").forEach { f ->
                     FilterChip(selected = selectedFilter == f, onClick = { selectedFilter = f },
-                        label = { Text(f, fontSize = 12.sp) },
+                        label = { Text(f, style = MaterialTheme.typography.labelMedium) },
+                        shape = MaterialTheme.shapes.small,
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Maroon700, selectedLabelColor = White))
+                            selectedContainerColor = Maroon700, selectedLabelColor = White),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true, selected = selectedFilter == f,
+                            borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                            selectedBorderColor = Maroon700))
                 }
             }
 
@@ -151,8 +162,8 @@ fun AdminScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Icon(Icons.Default.Group, null, modifier = Modifier.size(56.dp),
                             tint = Maroon700.copy(alpha = 0.3f))
-                        Text("No students yet", fontWeight = FontWeight.SemiBold)
-                        Text("Tap '+ Add Student' to get started", fontSize = 13.sp, color = TextLight)
+                        Text("No students yet", style = MaterialTheme.typography.titleMedium)
+                        Text("Tap \"Add Student\" to get started", style = MaterialTheme.typography.bodySmall, color = TextLight)
                     }
                 }
                 else -> {
@@ -183,12 +194,31 @@ fun AdminScreen(
     }
 }
 
+/** Two concentric rings + a thin cross‑hair, echoing an official stamp. Purely decorative. */
+@Composable
+private fun SealWatermark(modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier) {
+        val r = size.height * 0.9f
+        val center = androidx.compose.ui.geometry.Offset(size.width - r * 0.35f, size.height * 0.5f)
+        val ringColor = White.copy(alpha = 0.06f)
+        drawCircle(color = ringColor, radius = r * 0.5f, center = center,
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = r * 0.02f))
+        drawCircle(color = ringColor, radius = r * 0.38f, center = center,
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = r * 0.015f))
+        drawCircle(color = White.copy(alpha = 0.04f), radius = r * 0.22f, center = center)
+    }
+}
+
 @Composable
 private fun StatChip(label: String, value: String,
-                     icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color = White) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(value, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, color = color)
-        Text(label, fontSize = 10.sp, color = White.copy(alpha = 0.7f), letterSpacing = 0.5.sp)
+                     icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color = Gold) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Box(modifier = Modifier.size(30.dp).background(color.copy(alpha = 0.16f), CircleShape),
+            contentAlignment = Alignment.Center) {
+            Icon(icon, null, tint = color, modifier = Modifier.size(16.dp))
+        }
+        Text(value, style = MaterialTheme.typography.titleLarge, color = White)
+        Text(label, style = MaterialTheme.typography.labelSmall, color = White.copy(alpha = 0.7f))
     }
 }
 
@@ -199,44 +229,50 @@ private fun StudentCard(student: StudentModel, onClick: () -> Unit, onMessage: (
         student.isFullyCleared       -> ClearanceStatus.CLEARED
         else                         -> ClearanceStatus.PENDING
     }
-    Card(onClick = onClick, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp),
+    Card(onClick = onClick, modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(2.dp)) {
+        elevation = CardDefaults.cardElevation(1.dp, pressedElevation = 4.dp)) {
         Column(modifier = Modifier.fillMaxWidth()) {
-            Row(modifier = Modifier.fillMaxWidth().padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.size(50.dp)
-                    .background(Brush.radialGradient(listOf(Maroon600, Maroon800)), CircleShape),
-                    contentAlignment = Alignment.Center) {
-                    Text(student.name.take(2).uppercase(), fontSize = 18.sp,
-                        fontWeight = FontWeight.ExtraBold, color = White)
-                }
-                Spacer(Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(student.name, fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    Text(student.admissionNumber, fontSize = 12.sp, color = TextLight)
-                    Text(student.email, fontSize = 11.sp, color = TextLight)
-                }
-                Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Surface(shape = RoundedCornerShape(20.dp),
-                        color = overallStatus.toColor().copy(alpha = 0.12f)) {
-                        Text(overallStatus.toLabel(),
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                            fontSize = 10.sp, fontWeight = FontWeight.Bold, color = overallStatus.toColor())
+            // Slim status rail on the leading edge — reads the card's state before anything else.
+            Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                Box(modifier = Modifier.width(4.dp).fillMaxHeight().background(overallStatus.toColor()))
+                Row(modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Box(modifier = Modifier.size(48.dp)
+                        .background(Brush.radialGradient(listOf(Maroon600, Maroon800)), CircleShape),
+                        contentAlignment = Alignment.Center) {
+                        Text(student.name.take(2).uppercase(), style = MaterialTheme.typography.titleSmall,
+                            color = White)
                     }
-                    IconButton(onClick = onMessage, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Message, "Message", tint = Maroon700, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(student.name, style = MaterialTheme.typography.titleMedium)
+                        Text(student.admissionNumber, style = MaterialTheme.typography.bodySmall, color = TextLight)
+                        Text(student.email, style = MaterialTheme.typography.bodySmall, color = TextLight,
+                            maxLines = 1)
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Surface(shape = MaterialTheme.shapes.extraLarge,
+                            color = overallStatus.toColor().copy(alpha = 0.12f)) {
+                            Text(overallStatus.toLabel(),
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                style = MaterialTheme.typography.labelSmall, color = overallStatus.toColor())
+                        }
+                        IconButton(onClick = onMessage, modifier = Modifier.size(32.dp)) {
+                            Icon(Icons.Default.Message, "Message", tint = Maroon700, modifier = Modifier.size(18.dp))
+                        }
                     }
                 }
             }
-            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 12.dp),
+            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 14.dp),
                 horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                listOf("Lib" to student.libraryStatus, "Brd" to student.boardingStatus,
-                    "Spt" to student.sportsStatus, "Fin" to student.financeStatus).forEach { (label, status) ->
-                    Box(modifier = Modifier.weight(1f).clip(RoundedCornerShape(6.dp))
-                        .background(status.toColor().copy(alpha = 0.15f)).padding(vertical = 4.dp),
+                listOf("Library" to student.libraryStatus, "Boarding" to student.boardingStatus,
+                    "Sports" to student.sportsStatus, "Finance" to student.financeStatus).forEach { (label, status) ->
+                    Box(modifier = Modifier.weight(1f).clip(MaterialTheme.shapes.extraSmall)
+                        .background(status.toColor().copy(alpha = 0.14f)).padding(vertical = 5.dp),
                         contentAlignment = Alignment.Center) {
-                        Text(label, fontSize = 10.sp, color = status.toColor(), fontWeight = FontWeight.Bold)
+                        Text(label, style = MaterialTheme.typography.labelSmall, color = status.toColor())
                     }
                 }
             }
@@ -278,7 +314,7 @@ private fun ClearanceProgressBar(total: Int, cleared: Int, flagged: Int) {
         Text(
             if (total == 0) "No students yet"
             else "${(clearedFrac * 100).toInt()}% cleared across $total student${if (total == 1) "" else "s"}",
-            fontSize = 11.sp, color = White.copy(alpha = 0.75f)
+            style = MaterialTheme.typography.bodySmall, color = White.copy(alpha = 0.8f)
         )
     }
 }
@@ -286,9 +322,9 @@ private fun ClearanceProgressBar(total: Int, cleared: Int, flagged: Int) {
 /** Shimmering placeholder that mirrors StudentCard's layout while data loads. */
 @Composable
 private fun StudentCardSkeleton() {
-    Card(modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp),
+    Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(2.dp)) {
+        elevation = CardDefaults.cardElevation(1.dp)) {
         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             SkeletonBlock(modifier = Modifier.size(50.dp), shape = CircleShape)
             Spacer(Modifier.width(12.dp))

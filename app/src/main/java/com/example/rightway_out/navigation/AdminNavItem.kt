@@ -11,4 +11,6 @@ sealed class AdminNavItem(
 ) {
     data object Dashboard : AdminNavItem("admin_dashboard", "Dashboard", Icons.Default.Home)
     data object Messages : AdminNavItem("admin_messages_tab", "Messages", Icons.Default.Chat)
+    data object Reports : AdminNavItem("admin_reports_tab", "Reports", Icons.Default.BarChart)
+    data object Settings : AdminNavItem("admin_settings_tab", "Settings", Icons.Default.Settings)
 }

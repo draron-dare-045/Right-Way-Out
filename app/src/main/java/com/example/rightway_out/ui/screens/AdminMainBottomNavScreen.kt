@@ -17,17 +17,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.rightway_out.navigation.AdminNavItem
 import com.example.rightway_out.navigation.Routes
+import com.example.rightway_out.ui.theme.Gold
+import com.example.rightway_out.ui.theme.Maroon700
 import com.example.rightway_out.ui.viewmodel.ThemeViewModel
 import com.google.firebase.auth.FirebaseAuth
-
-// Brand colors
-private val Maroon700Admin = Color(0xFF8B0000)
-private val GoldAdmin = Color(0xFFFFD700)
 
 @Composable
 fun AdminMainBottomNavScreen(
@@ -36,7 +33,9 @@ fun AdminMainBottomNavScreen(
 ) {
     val items = listOf(
         AdminNavItem.Dashboard,
-        AdminNavItem.Messages
+        AdminNavItem.Messages,
+        AdminNavItem.Reports,
+        AdminNavItem.Settings
     )
 
     var currentRoute by rememberSaveable {
@@ -45,11 +44,21 @@ fun AdminMainBottomNavScreen(
 
     val unreadMessages = rememberAdminTotalUnreadCount()
 
+    val doSignOut: () -> Unit = {
+        FirebaseAuth.getInstance().signOut()
+        navController.navigate("login") {
+            popUpTo(navController.graph.startDestinationId) {
+                inclusive = true
+            }
+            launchSingleTop = true
+        }
+    }
+
     Scaffold(
         bottomBar = {
             NavigationBar(
                 containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp
+                tonalElevation = 3.dp
             ) {
                 items.forEach { item ->
                     NavigationBarItem(
@@ -61,7 +70,7 @@ fun AdminMainBottomNavScreen(
                             if (item.route == AdminNavItem.Messages.route && unreadMessages > 0) {
                                 BadgedBox(
                                     badge = {
-                                        Badge(containerColor = Maroon700Admin) {
+                                        Badge(containerColor = Maroon700, contentColor = androidx.compose.ui.graphics.Color.White) {
                                             Text(if (unreadMessages > 99) "99+" else unreadMessages.toString())
                                         }
                                     }
@@ -79,12 +88,12 @@ fun AdminMainBottomNavScreen(
                             }
                         },
                         label = {
-                            Text(text = item.title)
+                            Text(text = item.title, style = MaterialTheme.typography.labelMedium)
                         },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Maroon700Admin,
-                            selectedTextColor = Maroon700Admin,
-                            indicatorColor = GoldAdmin.copy(alpha = 0.15f)
+                            selectedIconColor = Maroon700,
+                            selectedTextColor = Maroon700,
+                            indicatorColor = Gold.copy(alpha = 0.18f)
                         )
                     )
                 }
@@ -99,16 +108,7 @@ fun AdminMainBottomNavScreen(
 
                 AdminNavItem.Dashboard.route -> {
                     AdminScreen(
-                        onLogout = {
-                            FirebaseAuth.getInstance().signOut()
-
-                            navController.navigate("login") {
-                                popUpTo(navController.graph.startDestinationId) {
-                                    inclusive = true
-                                }
-                                launchSingleTop = true
-                            }
-                        },
+                        onLogout = doSignOut,
                         onAddStudent = {
                             navController.navigate(Routes.ADD_STUDENT)
                         },
@@ -130,6 +130,21 @@ fun AdminMainBottomNavScreen(
                         onOpenChat = { sid, name ->
                             navController.navigate(Routes.messaging(sid, name))
                         }
+                    )
+                }
+
+                AdminNavItem.Reports.route -> {
+                    AdminReportsScreen(
+                        onStudentClick = { student ->
+                            navController.navigate(Routes.studentProfile(student.id))
+                        }
+                    )
+                }
+
+                AdminNavItem.Settings.route -> {
+                    AdminSettingsScreen(
+                        themeViewModel = themeViewModel,
+                        onLogout = doSignOut
                     )
                 }
             }

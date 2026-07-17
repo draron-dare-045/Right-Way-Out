@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -92,8 +93,9 @@ fun AdminMessagesScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Messages", fontWeight = FontWeight.Bold, color = White)
-                        Text("Student conversations", fontSize = 12.sp, color = White.copy(alpha = 0.7f))
+                        Text("Messages", style = MaterialTheme.typography.titleLarge, color = White)
+                        Text("Student conversations", style = MaterialTheme.typography.bodySmall,
+                            color = White.copy(alpha = 0.75f))
                     }
                 },
                 navigationIcon = {
@@ -110,12 +112,15 @@ fun AdminMessagesScreen(
 
             OutlinedTextField(
                 value = searchQuery, onValueChange = { searchQuery = it },
-                placeholder = { Text("Search conversations...") },
-                leadingIcon = { Icon(Icons.Default.Search, null) },
+                placeholder = { Text("Search conversations", style = MaterialTheme.typography.bodyMedium) },
+                textStyle = MaterialTheme.typography.bodyMedium,
+                leadingIcon = { Icon(Icons.Default.Search, null, tint = Maroon700) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
-                shape = RoundedCornerShape(14.dp),
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Maroon700)
+                shape = MaterialTheme.shapes.medium,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Maroon700,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f))
             )
 
             if (isLoading) {
@@ -128,16 +133,17 @@ fun AdminMessagesScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Icon(Icons.Default.ChatBubbleOutline, null,
                             modifier = Modifier.size(56.dp), tint = Maroon700.copy(alpha = 0.3f))
-                        Text("No conversations yet", color = TextMid)
-                        Text("Message a student from their profile", fontSize = 13.sp, color = TextLight)
+                        Text("No conversations yet", style = MaterialTheme.typography.titleMedium, color = TextMid)
+                        Text("Message a student from their profile",
+                            style = MaterialTheme.typography.bodySmall, color = TextLight)
                     }
                 }
             } else {
                 val filtered = conversations.filter {
                     searchQuery.isBlank() || it.studentName.contains(searchQuery, true)
                 }
-                LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                LazyColumn(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(filtered, key = { it.studentId }) { conv ->
                         ConversationRow(conv = conv,
                             onClick = { onOpenChat(conv.studentId, conv.studentName) })
@@ -158,43 +164,53 @@ private fun ConversationRow(conv: ConversationPreview, onClick: () -> Unit) {
     val unreadCount = rememberChatUnreadCount(studentId = conv.studentId, viewerIsAdmin = true)
     val hasUnread = unreadCount > 0
 
-    Row(modifier = Modifier.fillMaxWidth().clickable { onClick() }
-        .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically) {
+    // Unread uses the primary maroon (an "action needed" signal), keeping Forest
+    // reserved exclusively for clearance-cleared status elsewhere in the app.
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(if (hasUnread) 2.dp else 1.dp)
+    ) {
+        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically) {
 
-        Box(modifier = Modifier.size(50.dp)
-            .background(Maroon700, CircleShape),
-            contentAlignment = Alignment.Center) {
-            Text(conv.studentName.take(2).uppercase(), fontSize = 18.sp,
-                fontWeight = FontWeight.Bold, color = White)
-        }
-        Spacer(Modifier.width(14.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(conv.studentName,
-                fontWeight = if (hasUnread) FontWeight.Bold else FontWeight.SemiBold,
-                fontSize = 15.sp)
-            Text(conv.lastMessage, fontSize = 13.sp,
-                color = if (hasUnread) TextDark else TextLight,
-                fontWeight = if (hasUnread) FontWeight.Medium else FontWeight.Normal,
-                maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(timeStr, fontSize = 11.sp,
-                color = if (hasUnread) Forest else TextLight,
-                fontWeight = if (hasUnread) FontWeight.Bold else FontWeight.Normal)
-            if (hasUnread) {
-                Box(
-                    modifier = Modifier.background(Forest, CircleShape)
-                        .padding(horizontal = 7.dp, vertical = 2.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        if (unreadCount > 99) "99+" else unreadCount.toString(),
-                        fontSize = 11.sp, fontWeight = FontWeight.Bold, color = White
-                    )
+            Box(modifier = Modifier.size(48.dp)
+                .background(Brush.radialGradient(listOf(Maroon600, Maroon800)), CircleShape),
+                contentAlignment = Alignment.Center) {
+                Text(conv.studentName.take(2).uppercase(), style = MaterialTheme.typography.titleSmall,
+                    color = White)
+            }
+            Spacer(Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(conv.studentName,
+                    style = if (hasUnread) MaterialTheme.typography.titleMedium
+                    else MaterialTheme.typography.titleSmall)
+                Spacer(Modifier.height(2.dp))
+                Text(conv.lastMessage.ifBlank { "No messages yet" },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (hasUnread) MaterialTheme.colorScheme.onSurface else TextLight,
+                    fontWeight = if (hasUnread) FontWeight.Medium else FontWeight.Normal,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            Spacer(Modifier.width(8.dp))
+            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(timeStr, style = MaterialTheme.typography.labelSmall,
+                    color = if (hasUnread) Maroon700 else TextLight)
+                if (hasUnread) {
+                    Box(
+                        modifier = Modifier.background(Maroon700, CircleShape)
+                            .padding(horizontal = 7.dp, vertical = 2.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            if (unreadCount > 99) "99+" else unreadCount.toString(),
+                            style = MaterialTheme.typography.labelSmall, color = White
+                        )
+                    }
                 }
             }
         }
     }
-    Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
 }

@@ -118,7 +118,7 @@ fun LandingScreen(onGetStarted: () -> Unit) {
             ) {
                 FeaturePill(Icons.Default.VerifiedUser,  "Track clearance status in real-time")
                 FeaturePill(Icons.Default.ShoppingCart,  "Manage your school shopping list")
-                FeaturePill(Icons.Default.Message,       "Message admin directly from the app - To be fixed")
+                FeaturePill(Icons.Default.Message,       "Message admin directly from the app")
             }
 
             Spacer(Modifier.height(52.dp))

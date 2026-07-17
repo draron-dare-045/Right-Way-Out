@@ -29,6 +29,9 @@
                   <option name="projectNumber" value="419292215427" />
                 </ConnectionSetting>
               </option>
+              <option name="failureTypes">
+                <list />
+              </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
               <option name="timeIntervalDays" value="THIRTY_DAYS" />
               <option name="visibilityType" value="ALL" />
